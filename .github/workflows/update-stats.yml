@@ -1,0 +1,61 @@
+name: Generate GitHub Stats Cards
+
+on:
+  schedule:
+    - cron: "0 20 * * *"   # 每天 UTC 20:00 运行（北京时间次日凌晨4:00）
+  workflow_dispatch:       # 支持手动触发
+
+permissions:
+  contents: write          # 允许工作流提交生成的SVG
+
+jobs:
+  generate-cards:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. 检出仓库
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. 为 CLimber-rong 生成统计卡片
+      - name: Generate stats for CLimber-rong
+        uses: readme-tools/github-readme-stats-action@v1
+        with:
+          card: stats
+          options: username=CLimber-rong&show_icons=true&include_all_commits=true&hide_title=false
+          path: profile/CLimber-rong-stats.svg
+          token: ${{ secrets.ACCESS_TOKEN }}
+
+      - name: Generate top languages for CLimber-rong
+        uses: readme-tools/github-readme-stats-action@v1
+        with:
+          card: top-langs
+          options: username=CLimber-rong&layout=compact&langs_count=8
+          path: profile/CLimber-rong-top-langs.svg
+          token: ${{ secrets.ACCESS_TOKEN }}
+
+      # 3. 为 anon-desu 生成统计卡片
+      - name: Generate stats for anon-desu
+        uses: readme-tools/github-readme-stats-action@v1
+        with:
+          card: stats
+          options: username=anon-desu&show_icons=true&include_all_commits=true&hide_title=false
+          path: profile/anon-desu-stats.svg
+          token: ${{ secrets.ACCESS_TOKEN }}
+
+      - name: Generate top languages for anon-desu
+        uses: readme-tools/github-readme-stats-action@v1
+        with:
+          card: top-langs
+          options: username=anon-desu&layout=compact&langs_count=8
+          path: profile/anon-desu-top-langs.svg
+          token: ${{ secrets.ACCESS_TOKEN }}
+
+      # 4. 提交生成的SVG文件回仓库
+      - name: Commit and push changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add profile/*.svg
+          git commit -m "Auto-update GitHub stats cards [skip ci]" || exit 0
+          git push
